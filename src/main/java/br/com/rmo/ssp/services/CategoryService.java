@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.rmo.ssp.dto.CategoryDTO;
 import br.com.rmo.ssp.entities.Category;
 import br.com.rmo.ssp.repositories.CategoryRepository;
+import br.com.rmo.ssp.services.exceptions.EntityNotFoundException;
 
 @Service
 public class CategoryService {
@@ -33,7 +34,9 @@ public class CategoryService {
 
 		// IMPLEMENTANDO O OPTIONAL POR NECESSIDADE DO FRAMEWORK
 		Optional<Category> obj = repository.findById(id);
-		Category entity = obj.get();
+		
+		// TRABALHANDO A CHAMADA DE EXCEÇÃO:
+		Category entity = obj.orElseThrow(() -> new EntityNotFoundException("Entity not found!"));
 
 		return new CategoryDTO(entity);
 	}
