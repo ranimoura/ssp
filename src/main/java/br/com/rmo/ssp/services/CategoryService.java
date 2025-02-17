@@ -34,11 +34,21 @@ public class CategoryService {
 
 		// IMPLEMENTANDO O OPTIONAL POR NECESSIDADE DO FRAMEWORK
 		Optional<Category> obj = repository.findById(id);
-		
-		// TRABALHANDO A CHAMADA DE EXCEÇÃO:
-		Category entity = obj.orElseThrow(() -> new EntityNotFoundException("Entity not found!"));
 
-		return new CategoryDTO(entity);
+		// TRABALHANDO A CHAMADA DE EXCEÇÃO:
+		Category category = obj.orElseThrow(() -> new EntityNotFoundException("Entity not found!"));
+
+		return new CategoryDTO(category);
+	}
+
+	@Transactional
+	public CategoryDTO insert(CategoryDTO catDto) {
+
+		Category category = new Category();
+		category.setId(catDto.getId());
+		category = repository.save(category);
+
+		return new CategoryDTO(category);
 	}
 
 }
