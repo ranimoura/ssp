@@ -10,8 +10,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.rmo.ssp.dto.CategoryDTO;
 import br.com.rmo.ssp.dto.ProductDTO;
+import br.com.rmo.ssp.entities.Category;
 import br.com.rmo.ssp.entities.Product;
+import br.com.rmo.ssp.repositories.CategoryRepository;
 import br.com.rmo.ssp.repositories.ProductRepository;
 import br.com.rmo.ssp.services.exceptions.DatabaseException;
 import br.com.rmo.ssp.services.exceptions.ResourceNotFoundException;
@@ -22,6 +25,9 @@ public class ProductService {
 
 	@Autowired
 	private ProductRepository repository;
+
+	@Autowired
+	private CategoryRepository categoryRepository;
 
 	@Transactional(readOnly = true)
 	public Page<ProductDTO> findAllPaged(PageRequest pageRequest) {
@@ -49,7 +55,9 @@ public class ProductService {
 	public ProductDTO insert(ProductDTO dto) {
 
 		Product product = new Product();
-		product.setName(dto.getName());
+
+		copyDtoToProduct(dto, product);
+
 		product = repository.save(product);
 
 		return new ProductDTO(product);
@@ -61,7 +69,9 @@ public class ProductService {
 		try {
 
 			Product product = repository.getReferenceById(id);
-			product.setName(dto.getName());
+
+			copyDtoToProduct(dto, product);
+
 			product = repository.save(product);
 
 			return new ProductDTO(product);
@@ -83,6 +93,29 @@ public class ProductService {
 
 		} catch (DataIntegrityViolationException e) {
 			throw new DatabaseException("Integrity Violation");
+		}
+
+	}
+
+	private void copyDtoToProduct(ProductDTO dto, Product product) {
+
+		product.setName(dto.getName());
+		product.setDescription(dto.getDescription());
+		product.setPrice(dto.getPrice());
+		product.setImgUrl(dto.getImgUrl());
+		product.setDate(dto.getDate());
+
+		// LIMPANDO AS CATEGORIAS QUE POSSAM EXISTIR NA ENTIDADE
+		product.getCategories().clear();
+
+		for (CategoryDTO catDto : dto.getCategories()) {
+
+			// BUSCANDO AS CATEGORIAS REFERENTES AO PRODUTO, PERCORRENDO SUA LISTA ATRAVÉS
+			// DO REPOSITORY
+			Category category = categoryRepository.getReferenceById(catDto.getId());
+
+			// INSERINDO AS CATEGORIAS:
+			product.getCategories().add(category);
 		}
 
 	}
